@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Form\TaskType;
-use App\Repository\UserRepository;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -105,12 +104,14 @@ class TaskController extends AbstractController
         {
             $currentRole = $user->getRole();
 
-            if ($user === $task->getUser()|| $currentRole === 'ROLE_ADMIN') {
+            if ($user === $task->getUser() || $currentRole === 'ROLE_ADMIN') {
                 $em = $this->getDoctrine()->getManager();
                 $em->remove($task);
                 $em->flush();
 
                 $this->addFlash('success', 'La tâche a bien été supprimée.');
+            } else {
+                $this->addFlash('error', 'Vous n\'êtes pas l\'auteur(e) de cette tâche');
             }
         } else {
             $this->addFlash('error', 'Vous n\'avez pas les droits pour supprimer cette tâche');
