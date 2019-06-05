@@ -4,38 +4,50 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Form\TaskType;
+use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
 
 class TaskController extends AbstractController
 {
+
+    private $manager;
+
+    public function __construct(ObjectManager $manager)
+    {
+        $this->manager = $manager;
+    }
+
     /**
      * @Route("/tasks", name="task_list")
      */
     public function listAction()
     {
-        return $this->render('task/list.html.twig', ['tasks' => $this->getDoctrine()->getRepository('AppBundle:Task')->findAll()]);
+        return $this->render('task/list.html.twig', ['tasks' => $this->getDoctrine()->getRepository(Task::class)->findAll()]);
     }
 
     /**
      * @Route("/tasks/create", name="task_create")
      */
-    public function createAction(Request $request)
+    public function createAction(Request $request, Security $security)
     {
         $task = new Task();
         $form = $this->createForm(TaskType::class, $task);
+        $user = $security->getToken()->getUser();
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
+            if ($user !== 'anon.') {
+                $task->setUser($user);
+            }
 
-            $em->persist($task);
-            $em->flush();
+            $this->manager->persist($task);
+            $this->manager->flush();
 
             $this->addFlash('success', 'La tâche a été bien été ajoutée.');
-
             return $this->redirectToRoute('task_list');
         }
 
@@ -45,17 +57,22 @@ class TaskController extends AbstractController
     /**
      * @Route("/tasks/{id}/edit", name="task_edit")
      */
-    public function editAction(Task $task, Request $request)
+    public function editAction(Task $task, Request $request, Security $security)
     {
-        $form = $this->createForm(TaskType::class, $task);
-
-        $form->handleRequest($request);
+        $form = $this->createForm(TaskType::class, $task)->handleRequest($request);
+        $user = $security->getToken()->getUser();
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            if ($user === $task->getUser()) {
+                $this->getDoctrine()->getManager()->flush();
 
-            $this->addFlash('success', 'La tâche a bien été modifiée.');
+                $this->addFlash('success', 'La tâche a bien été modifiée.');
 
+            } else {
+
+                $this->addFlash('error', 'Vous ne pouvez pas modifier cette tâche');
+
+            }
             return $this->redirectToRoute('task_list');
         }
 
@@ -81,13 +98,26 @@ class TaskController extends AbstractController
     /**
      * @Route("/tasks/{id}/delete", name="task_delete")
      */
-    public function deleteTaskAction(Task $task)
+    public function deleteTaskAction(Task $task, Security $security)
     {
-        $em = $this->getDoctrine()->getManager();
-        $em->remove($task);
-        $em->flush();
+        $user = $security->getToken()->getUser();
 
-        $this->addFlash('success', 'La tâche a bien été supprimée.');
+        if ($user !== 'anon.')
+        {
+            $currentRole = $user->getRole();
+
+            if ($user === $task->getUser() || $currentRole === 'ROLE_ADMIN') {
+                $em = $this->getDoctrine()->getManager();
+                $em->remove($task);
+                $em->flush();
+
+                $this->addFlash('success', 'La tâche a bien été supprimée.');
+            } else {
+                $this->addFlash('error', 'Vous n\'êtes pas l\'auteur(e) de cette tâche');
+            }
+        } else {
+            $this->addFlash('error', 'Vous n\'avez pas les droits pour supprimer cette tâche');
+        }
 
         return $this->redirectToRoute('task_list');
     }
