@@ -69,7 +69,9 @@ class TaskController extends AbstractController
                 $this->addFlash('success', 'La tâche a bien été modifiée.');
 
             } else {
+
                 $this->addFlash('error', 'Vous ne pouvez pas modifier cette tâche');
+
             }
             return $this->redirectToRoute('task_list');
         }
