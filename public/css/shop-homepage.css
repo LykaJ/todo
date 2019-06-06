@@ -5,11 +5,35 @@
  */
 
 body {
-    padding-top: 70px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+    width: 100%;
+}
+
+.parallax {
+    /* The image used */
+    background-image: url("../img/cropped-To-do-list.jpg");
+
+    /* Set a specific height */
+    height: 500px;
+
+    /* Create the parallax scrolling effect */
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .slide-image {
     width: 100%;
+    height: auto;
+    margin: 0;
+}
+
+.header-title {
+    padding: 15px;
+    color: grey;
+    background-color: white;
+    text-align: center;
+    font-style: italic;
 }
 
 .carousel-holder {
@@ -51,4 +75,8 @@ body {
 
 footer {
     margin: 50px 0;
+}
+
+#content {
+    background-color: white;
 }
