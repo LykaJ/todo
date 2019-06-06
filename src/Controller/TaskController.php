@@ -102,11 +102,17 @@ class TaskController extends AbstractController
     {
         $user = $security->getToken()->getUser();
 
-        if ($user !== 'anon.')
-        {
+        if ($user !== 'anon.') {
             $currentRole = $user->getRole();
 
-            if ($user === $task->getUser() || $currentRole === 'ROLE_ADMIN') {
+            if ($user === $task->getUser()) {
+                $em = $this->getDoctrine()->getManager();
+                $em->remove($task);
+                $em->flush();
+
+                $this->addFlash('success', 'La tâche a bien été supprimée.');
+            } elseif ($currentRole === 'ROLE_ADMIN' && $task->getUser() === null) {
+
                 $em = $this->getDoctrine()->getManager();
                 $em->remove($task);
                 $em->flush();
