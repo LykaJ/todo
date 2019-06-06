@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Form\TaskType;
+use App\Repository\TaskRepository;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,10 +15,12 @@ class TaskController extends AbstractController
 {
 
     private $manager;
+    private $repository;
 
-    public function __construct(ObjectManager $manager)
+    public function __construct(ObjectManager $manager, TaskRepository $repository)
     {
         $this->manager = $manager;
+        $this->repository = $repository;
     }
 
     /**
@@ -26,6 +29,18 @@ class TaskController extends AbstractController
     public function listAction()
     {
         return $this->render('task/list.html.twig', ['tasks' => $this->getDoctrine()->getRepository(Task::class)->findAll()]);
+    }
+
+    /**
+     * @Route("/tasks/done", name="task_done_list")
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function listDoneAction()
+    {
+        $tasks = $this->repository->findDone();
+        return $this->render('task/list.html.twig', [
+            'tasks' => $tasks
+        ]);
     }
 
     /**
