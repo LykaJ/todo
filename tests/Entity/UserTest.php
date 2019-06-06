@@ -61,4 +61,5 @@ class UserTest extends TestCase
 
         $this->assertSame($this->user->getTasks(), $tasks);
     }
+
 }
