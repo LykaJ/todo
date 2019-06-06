@@ -1,7 +1,3 @@
 ToDoList
 ========
-
-Base du projet #8 : Améliorez un projet existant
-
-https://openclassrooms.com/projects/ameliorer-un-projet-existant-1
-# todo
+[![Maintainability](https://api.codeclimate.com/v1/badges/248aa5b3dd71f950d881/maintainability)](https://codeclimate.com/github/LykaJ/todo/maintainability)
