@@ -62,7 +62,7 @@ class TaskController extends AbstractController
             $this->manager->persist($task);
             $this->manager->flush();
 
-            $this->addFlash('success', 'La tâche a été bien été ajoutée.');
+            $this->addFlash('success', 'La tâche a été bien été ajoutée');
             return $this->redirectToRoute('task_list');
         }
 
@@ -81,7 +81,7 @@ class TaskController extends AbstractController
             if ($user === $task->getUser()) {
                 $this->getDoctrine()->getManager()->flush();
 
-                $this->addFlash('success', 'La tâche a bien été modifiée.');
+                $this->addFlash('success', 'La tâche a bien été modifiée');
 
             } else {
 
@@ -105,7 +105,7 @@ class TaskController extends AbstractController
         $task->toggle(!$task->isDone());
         $this->getDoctrine()->getManager()->flush();
 
-        $this->addFlash('success', sprintf('La tâche %s a bien été marquée comme faite.', $task->getTitle()));
+        $this->addFlash('success', sprintf('La tâche %s a bien été marquée comme faite', $task->getTitle()));
 
         return $this->redirectToRoute('task_list');
     }
@@ -125,7 +125,7 @@ class TaskController extends AbstractController
                 $em->remove($task);
                 $em->flush();
 
-                $this->addFlash('success', 'La tâche a bien été supprimée.');
+                $this->addFlash('success', 'La tâche a bien été supprimée');
             } elseif ($currentRole === 'ROLE_ADMIN' && $task->getUser() === null) {
 
                 $em = $this->getDoctrine()->getManager();

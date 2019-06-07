@@ -8,14 +8,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\Security\Core\Security;
 
 class UserController extends AbstractController
 {
     /**
      * @Route("/users", name="user_list")
      */
-    public function listAction(Security $security)
+    public function listAction()
     {
         return $this->render('user/list.html.twig', ['users' => $this->getDoctrine()->getRepository(User::class)->findAll()]);
     }
@@ -38,7 +37,7 @@ class UserController extends AbstractController
             $em->persist($user);
             $em->flush();
 
-            $this->addFlash('success', "L'utilisateur a bien été ajouté.");
+            $this->addFlash('success', "L'utilisateur a bien été ajouté");
 
             return $this->redirectToRoute('user_list');
         }
