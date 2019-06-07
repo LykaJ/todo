@@ -26,11 +26,13 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="string", length=25, unique=true)
      * @Assert\NotBlank(message="Vous devez saisir un nom d'utilisateur.")
+     * @Assert\Length(max="25", maxMessage="Le nom d'utilisateur ne peut pas dépasser {{ limit }} caractères.")
      */
     private $username;
 
     /**
      * @ORM\Column(type="string", length=64)
+     * @Assert\Length(max="64", maxMessage="Le mot de passe ne peut pas dépasser {{ limit }} caractères.")
      */
     private $password;
 
@@ -38,6 +40,7 @@ class User implements UserInterface
      * @ORM\Column(type="string", length=60, unique=true)
      * @Assert\NotBlank(message="Vous devez saisir une adresse email.")
      * @Assert\Email(message="Le format de l'adresse n'est pas correcte.")
+     *
      */
     private $email;
 

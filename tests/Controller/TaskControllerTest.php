@@ -23,51 +23,36 @@ class TaskControllerTest extends WebTestCase
             ->getManager();
     }
 
-    private function logIn(array $role)
-    {
-        $client = static::createClient();
-        $session = $client->getContainer()->get('session');
-        $firewallName = 'main';
-        $firewallContext = 'main';
-        $token = new UsernamePasswordToken('user', null, $firewallName, $role);
-        $session->set('_security_'.$firewallContext, serialize($token));
-        $session->save();
-        $cookie = new Cookie($session->getName(), $session->getId());
-        $client->getCookieJar()->set($cookie);
-    }
-
-    private function logInRealUser($userId)
+    private function logIn()
     {
         $client = static::createClient();
 
-        $user = $this->entityManager
-            ->getRepository(User::class)
-            ->find($userId);
+        $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
+        $user = $entityManager->getRepository(User::class)->findOneByUsername('Admin');
         $session = $client->getContainer()->get('session');
-        $firewallName = 'main';
-        $firewallContext = 'main';
-        $token = new UsernamePasswordToken($user, null, $firewallName);
 
-        $session->set('_security_'.$firewallContext, serialize($token));
+        $firewall = 'main';
+        $token = new UsernamePasswordToken($user, null, $firewall, array('ROLE_ADMIN'));
+        $session->set('_security_' . $firewall, serialize($token));
         $session->save();
-
         $cookie = new Cookie($session->getName(), $session->getId());
-
         $client->getCookieJar()->set($cookie);
+        return $client;
     }
 
     public function testList()
     {
-        $client = static::createClient();
-        $this->logIn(['ROLE_USER']);
+
+        $client = $this->logIn();
+
         $client->request('GET', '/tasks');
 
-        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
     }
+
     public function testListDone()
     {
-        $client = static::createClient();
-        $this->logIn(['ROLE_USER']);
+        $client = $this->logIn();
         $client->request('GET', '/tasks/done');
 
         $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
@@ -75,8 +60,7 @@ class TaskControllerTest extends WebTestCase
 
     public function testCreatePage()
     {
-        $client = static::createClient();
-        $this->logIn(['ROLE_USER']);
+        $client = $this->logIn();
         $client->request('GET', '/tasks/create');
 
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -84,63 +68,63 @@ class TaskControllerTest extends WebTestCase
 
     public function testCreateActionForm()
     {
-        $client = static::createClient();
-        $this->logIn(['ROLE_USER']);
+        $client = $this->logIn();
 
         $crawler = $client->request('GET', '/tasks/create');
-        $form = $crawler->selectButton('Ajouter')->form();
-        $form['task[title]'] = 'Title new';
-        $form['task[content]'] = 'Content new';
-        $client->submit($form);
 
-        $client->followRedirect();
+        if ($client !== 'anon.') {
+            $form = $crawler->selectButton('Ajouter')->form();
+            $form['task[title]'] = 'Title new';
+            $form['task[content]'] = 'Content new';
 
-        $this->assertSame(200, $client->getResponse()->getStatusCode());
-        $this->assertContains("La tâche a été bien été ajoutée", $client->getResponse()->getContent());
+            $task = new Task();
+            $task->setUser($client);
+            $client->submit($form);
+
+            $client->followRedirect();
+
+            $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+            $this->assertContains("La tâche a été bien été ajoutée", $client->getResponse()->getContent());
+        }
+
+
     }
 
     public function testEditActionOk()
     {
         $client = static::createClient();
-        $task = new Task();
 
-        $user = $this->logInRealUser(1);
-        $crawler = $client->request('GET', '/tasks/1/edit');
-        $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
-        if ($user === $task->getUser())
-        {
-            $form = $crawler->selectButton('Modifier')->form();
-            $form['task[title]'] = 'Titre édité';
-            $form['task[content]'] = 'Contenu édité';
-            $client->submit($form);
+        $task = $entityManager->getRepository(Task::class)->findOneBy([]);
 
-            $client->followRedirect();
+        $crawler = $client->request('GET', '/tasks/'.$task->getId().'/edit');
 
-            $this->assertSame(200, $client->getResponse()->getStatusCode());
-            $this->assertContains("La tâche a bien été modifiée", $client->getResponse()->getContent());
-        } else {
-            $this->assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode());
-        }
+        $this->assertEquals(1,	$crawler->filter('form')->count());
+        $this->assertTrue($client->getResponse()->isSuccessful());
+        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+
+        $form['task[title]'] = 'Title edited';
+        $client->submit($form);
+
+        $this->assertTrue($client->getResponse()->isRedirect());
 
     }
 
     public function testDeleteActionOk()
     {
         $client = static::createClient();
-        $task = new Task();
 
-        $user = $this->logInRealUser(1);
+        $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
-        $client->request('/GET', '/tasks/1/delete');
+        $task = $entityManager->getRepository(Task::class)->findOneBy([]);
 
-        if ($user === $task->getUser() || $user !== 'anon.' )
-        {
-            $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
-            $this->assertContains("La tâche a bien été supprimée", $client->getResponse()->getContent());
-        } else {
-            $this->assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode());
-        }
+        $client->request('/GET', '/tasks/' . $task->getId() . '/delete');
+
+        $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertContains("La tâche a bien été supprimée", $client->getResponse()->getContent());
+
+        $this->assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode());
 
 
     }
@@ -148,13 +132,14 @@ class TaskControllerTest extends WebTestCase
     public function testToggleOk()
     {
         $client = static::createClient();
-        $this->logInRealUser(1);
-        $client->request('GET', '/tasks/1/toggle');
 
+        $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
+
+        $task = $entityManager->getRepository(Task::class)->findOneBy([]);
+
+        $client->request('GET', '/tasks/' .$task->getId(). '/toggle');
         $client->followRedirect();
 
-
-        $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
     }
-
 }

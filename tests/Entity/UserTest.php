@@ -45,9 +45,6 @@ class UserTest extends TestCase
         $this->assertSame('user@email.com', $this->user->getEmail());
     }
 
-    /**
-     *
-     */
     public function testRole()
     {
         $this->user->setRole('ROLE_USER');
@@ -60,6 +57,27 @@ class UserTest extends TestCase
         $tasks = $this->user->getTasks($this->task->getUser());
 
         $this->assertSame($this->user->getTasks(), $tasks);
+    }
+
+    public function testRoles()
+    {
+        $roles = $this->user->getRoles($this->user->getRole);
+
+        $this->assertSame(array($this->user->getRole()), $roles);
+    }
+
+    public function testAddTask()
+    {
+        $newTask = $this->user->addTask($this->task);
+
+        $this->assertInstanceOf(User::class, $newTask);
+    }
+
+    public function testRemoveTask()
+    {
+        $task = $this->user->removeTask($this->task);
+
+        $this->assertInstanceOf(User::class, $task);
     }
 
 }
