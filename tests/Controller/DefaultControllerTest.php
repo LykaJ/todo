@@ -10,7 +10,7 @@ class DefaultControllerTest extends WebTestCase
     public function testHomepageIsUp()
     {
         $client = static::createClient();
-        $client->request('/GET', '/');
+        $client->request('GET', '/');
 
         static::assertEquals(
             Response::HTTP_OK,

@@ -70,7 +70,7 @@ class UserControllerTest extends WebTestCase
 
         $form = $crawler->selectButton('Modifier')->form();
 
-        $form['user_update[username]'] = 'Admin';
+        $form['user[username]'] = 'Admin';
 
         $client->submit($form);
 

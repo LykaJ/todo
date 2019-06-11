@@ -61,7 +61,7 @@ class UserTest extends TestCase
 
     public function testRoles()
     {
-        $roles = $this->user->getRoles($this->user->getRole);
+        $roles = $this->user->getRoles($this->user->getRole());
 
         $this->assertSame(array($this->user->getRole()), $roles);
     }
@@ -78,6 +78,15 @@ class UserTest extends TestCase
         $task = $this->user->removeTask($this->task);
 
         $this->assertInstanceOf(User::class, $task);
+
+        $taskUser = $this->user->setPassword(null);
+
+        $this->assertEquals($this->user->getPassword, $taskUser);
+    }
+
+    public function testEraseCredentials()
+    {
+       // This method is not used
     }
 
 }
