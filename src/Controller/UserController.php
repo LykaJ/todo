@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\UserType;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,12 +13,31 @@ use Symfony\Component\Security\Core\Security;
 
 class UserController extends AbstractController
 {
+    private $repository;
+
+    public function __construct(UserRepository $repository)
+    {
+        $this->repository = $repository;
+    }
+
     /**
      * @Route("/users", name="user_list")
      */
     public function listAction(Security $security)
     {
-        return $this->render('user/list.html.twig', ['users' => $this->getDoctrine()->getRepository(User::class)->findAll()]);
+        $currentUser = $security->getToken()->getUser();
+        $currentRole = $currentUser->getRole();
+
+        if ($currentRole === 'ROLE_ADMIN')
+        {
+            $users = $this->repository->findAll();
+            return $this->render('user/list.html.twig', [
+                'users' => $users
+            ]);
+        } else {
+            $this->addFlash('error', 'Vous n\'avez pas les droits d\'accès à ces données');
+            return $this->redirectToRoute('homepage');
+        }
     }
 
     /**
@@ -38,7 +58,7 @@ class UserController extends AbstractController
             $em->persist($user);
             $em->flush();
 
-            $this->addFlash('success', "L'utilisateur a bien été ajouté.");
+            $this->addFlash('success', "L'utilisateur a bien été ajouté");
 
             return $this->redirectToRoute('user_list');
         }

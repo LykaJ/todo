@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Form\TaskType;
+use App\Repository\TaskRepository;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,10 +15,12 @@ class TaskController extends AbstractController
 {
 
     private $manager;
+    private $repository;
 
-    public function __construct(ObjectManager $manager)
+    public function __construct(ObjectManager $manager, TaskRepository $repository)
     {
         $this->manager = $manager;
+        $this->repository = $repository;
     }
 
     /**
@@ -25,7 +28,20 @@ class TaskController extends AbstractController
      */
     public function listAction()
     {
-        return $this->render('task/list.html.twig', ['tasks' => $this->getDoctrine()->getRepository(Task::class)->findAll()]);
+        $tasks = $this->repository->findAll();
+        return $this->render('task/list.html.twig', ['tasks' => $tasks]);
+    }
+
+    /**
+     * @Route("/tasks/done", name="task_done_list")
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function listDoneAction()
+    {
+        $tasks = $this->repository->findDone();
+        return $this->render('task/list.html.twig', [
+            'tasks' => $tasks
+        ]);
     }
 
     /**
@@ -47,7 +63,7 @@ class TaskController extends AbstractController
             $this->manager->persist($task);
             $this->manager->flush();
 
-            $this->addFlash('success', 'La tâche a été bien été ajoutée.');
+            $this->addFlash('success', 'La tâche a été bien été ajoutée');
             return $this->redirectToRoute('task_list');
         }
 
@@ -64,9 +80,9 @@ class TaskController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($user === $task->getUser()) {
-                $this->getDoctrine()->getManager()->flush();
+                $this->manager->flush();
 
-                $this->addFlash('success', 'La tâche a bien été modifiée.');
+                $this->addFlash('success', 'La tâche a bien été modifiée');
 
             } else {
 
@@ -90,7 +106,7 @@ class TaskController extends AbstractController
         $task->toggle(!$task->isDone());
         $this->getDoctrine()->getManager()->flush();
 
-        $this->addFlash('success', sprintf('La tâche %s a bien été marquée comme faite.', $task->getTitle()));
+        $this->addFlash('success', sprintf('La tâche %s a bien été marquée comme faite', $task->getTitle()));
 
         return $this->redirectToRoute('task_list');
     }
@@ -110,7 +126,7 @@ class TaskController extends AbstractController
                 $em->remove($task);
                 $em->flush();
 
-                $this->addFlash('success', 'La tâche a bien été supprimée.');
+                $this->addFlash('success', 'La tâche a bien été supprimée');
             } elseif ($currentRole === 'ROLE_ADMIN' && $task->getUser() === null) {
 
                 $em = $this->getDoctrine()->getManager();
