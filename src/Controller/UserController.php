@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Security;
 
 class UserController extends AbstractController
 {
@@ -22,12 +23,21 @@ class UserController extends AbstractController
     /**
      * @Route("/users", name="user_list")
      */
-    public function listAction()
+    public function listAction(Security $security)
     {
-        $users = $this->repository->findAll();
-        return $this->render('user/list.html.twig', [
-            'users' => $users
-        ]);
+        $currentUser = $security->getToken()->getUser();
+        $currentRole = $currentUser->getRole();
+
+        if ($currentRole === 'ROLE_ADMIN')
+        {
+            $users = $this->repository->findAll();
+            return $this->render('user/list.html.twig', [
+                'users' => $users
+            ]);
+        } else {
+            $this->addFlash('error', 'Vous n\'avez pas les droits d\'accès à ces données');
+            return $this->redirectToRoute('homepage');
+        }
     }
 
     /**
