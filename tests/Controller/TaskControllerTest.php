@@ -100,12 +100,15 @@ class TaskControllerTest extends WebTestCase
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
         $task = $entityManager->getRepository(Task::class)->findOneBy([]);
+        $user = $entityManager->getRepository(User::class)->findOneBy([]);
 
         $crawler = $client->request('GET', '/tasks/'.$task->getId().'/edit');
 
+        $this->assertSame($task->getUser()->getId(), $user->getId());
         $this->assertEquals(1,	$crawler->filter('form')->count());
         $this->assertTrue($client->getResponse()->isSuccessful());
         $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+
 
         $form = $crawler->selectButton('Modifier')->form();
         $form['task[title]'] = 'Title edited';
@@ -127,8 +130,13 @@ class TaskControllerTest extends WebTestCase
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
         $task = $entityManager->getRepository(Task::class)->findOneBy([]);
+        $user = $entityManager->getRepository(User::class)->findOneBy([]);
+        $role = $user->getRole();
 
         $client->request('/GET', '/tasks/' . $task->getId() . '/delete');
+
+        $this->assertSame('ROLE_ADMIN', $role);
+        $this->assertEquals($task->getUser()->getId(), $user->getId());
 
         $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
         $this->assertContains("La tâche a bien été supprimée", $client->getResponse()->getContent());
