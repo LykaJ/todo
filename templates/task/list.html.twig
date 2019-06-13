@@ -17,14 +17,19 @@
                         <h4>
                             {{ task.title }}
                             {% if app.user == task.user %}
-                                <a href="{{ path('task_edit', {'id' : task.id }) }}"><i
-                                            class="fas fa-pencil-alt"></i></a>
+                                {% if app.user %}
+                                    <a href="{{ path('task_edit', {'id' : task.id }) }}"><i
+                                                class="fas fa-pencil-alt"></i></a>
+                                {% endif %}
                             {% endif %}
                             <div class="float-right">
-                                {% if app.user == task.user or task.user == null and is_granted('ROLE_ADMIN') %}
-                                    <form action="{{ path('task_delete', {'id' : task.id }) }}">
-                                        <button class="btn btn-outline-secondary"><i class="far fa-trash-alt"></i></button>
-                                    </form>
+                                {% if app.user == task.user or is_granted('ROLE_ADMIN') %}
+                                    {% if app.user %}
+                                        <form action="{{ path('task_delete', {'id' : task.id }) }}">
+                                            <button class="btn btn-outline-secondary"><i class="far fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         </h4>
