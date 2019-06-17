@@ -54,8 +54,8 @@ class TaskController extends AbstractController
         $user = $security->getToken()->getUser();
 
         if ($user === 'anon.') {
-            $this->addFlash('error', 'Access denied');
-            return $this->redirectToRoute('task_list');
+            $this->addFlash('error', 'Connectez-vous pour ajouter une tâche');
+            return $this->redirectToRoute('login');
         }
 
         $form->handleRequest($request);

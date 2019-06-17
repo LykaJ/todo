@@ -131,9 +131,6 @@ class TaskControllerTest extends WebTestCase
         $this->assertEquals($task->getUser()->getId(), $user->getId());
 
         $this->assertSame(Response::HTTP_FOUND, $client->getResponse()->getStatusCode());
-        $this->assertContains("La tâche a bien été supprimée", $client->getResponse()->getContent());
-
-        $this->assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode());
 
 
     }
@@ -152,11 +149,14 @@ class TaskControllerTest extends WebTestCase
         //$this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
         $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
 
-        $client->request('GET', '/tasks/done');
-        $this->assertContains('Redirecting to /tasks/done', $client->getResponse()->getContent());
-
         $client->request('GET', '/tasks');
-        $this->assertEquals('Redirecting to /tasks', $client->getResponse()->getContent());
+        $this->assertContains('Marquer comme terminée', $client->getResponse()->getContent());
+
+        $taskDone = $entityManager->getRepository(Task::class)->findOneBy(['id' => 1]);
+        $taskDone->isDone();
+
+        $client->request('GET', '/tasks/done');
+        $this->assertContains('Marquer non terminée', $client->getResponse()->getContent());
 
     }
 }
