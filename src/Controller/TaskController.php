@@ -53,12 +53,14 @@ class TaskController extends AbstractController
         $form = $this->createForm(TaskType::class, $task);
         $user = $security->getToken()->getUser();
 
+        if ($user === 'anon.') {
+            $this->addFlash('error', 'Access denied');
+            return $this->redirectToRoute('task_list');
+        }
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($user !== 'anon.') {
-                $task->setUser($user);
-            }
 
             $this->manager->persist($task);
             $this->manager->flush();
