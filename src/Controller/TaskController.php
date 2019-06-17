@@ -28,7 +28,7 @@ class TaskController extends AbstractController
      */
     public function listAction()
     {
-        $tasks = $this->repository->findAll();
+        $tasks = $this->repository->findNotDone();
         return $this->render('task/list.html.twig', ['tasks' => $tasks]);
     }
 
@@ -53,12 +53,14 @@ class TaskController extends AbstractController
         $form = $this->createForm(TaskType::class, $task);
         $user = $security->getToken()->getUser();
 
+        if ($user === 'anon.') {
+            $this->addFlash('error', 'Access denied');
+            return $this->redirectToRoute('task_list');
+        }
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($user !== 'anon.') {
-                $task->setUser($user);
-            }
 
             $this->manager->persist($task);
             $this->manager->flush();
@@ -104,11 +106,19 @@ class TaskController extends AbstractController
     public function toggleTaskAction(Task $task)
     {
         $task->toggle(!$task->isDone());
-        $this->getDoctrine()->getManager()->flush();
+        $this->manager->flush();
 
-        $this->addFlash('success', sprintf('La tâche %s a bien été marquée comme faite', $task->getTitle()));
+        if ($task->isDone())
+        {
+            $this->addFlash('success', sprintf('La tâche %s a bien été marquée comme faite', $task->getTitle()));
 
-        return $this->redirectToRoute('task_list');
+            return $this->redirectToRoute('task_done_list');
+        } else {
+            $this->addFlash('success', sprintf('La tâche %s a bien été marquée comme non terminée', $task->getTitle()));
+
+            return $this->redirectToRoute('task_list');
+        }
+
     }
 
     /**

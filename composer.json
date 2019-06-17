@@ -1,5 +1,5 @@
 {
-  "name": "saro0h/to-do-list",
+  "name": "ToDoList",
   "license": "proprietary",
   "type": "project",
   "autoload": {
@@ -43,7 +43,8 @@
     "symfony/maker-bundle": "^1.11",
     "doctrine/doctrine-fixtures-bundle": "^3.1",
     "symfony/profiler-pack": "^1.0",
-    "symfony/test-pack": "^1.0"
+    "symfony/test-pack": "^1.0",
+    "symfony/phpunit-bridge": "^4.0"
   },
   "scripts": {
     "auto-scripts": [

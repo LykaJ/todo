@@ -22,6 +22,7 @@ security:
                 check_path: login
                 login_path: login
 
+
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
 
@@ -32,6 +33,7 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
          - { path: ^/users, roles: ROLE_ADMIN }
+        # - { path: ^/tasks/create, roles: ROLE_USER }
         # - { path: ^/profile, roles: ROLE_USER }
 
     encoders:

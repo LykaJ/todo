@@ -51,9 +51,10 @@ class UserControllerTest extends WebTestCase
         $form['user[email]'] = 'jane@mail.com';
         $form['user[role]'] = 'ROLE_USER';
 
-        $client->submit($form);
-        $this->assertTrue($client->getResponse()->isRedirect());
+        $crawler = $client->submit($form);
+        $this->assertTrue($crawler->filter('html:contains("L\'utilisateur a bien été ajouté")')->count() > 0);
     }
+
     public function testEditUserAction()
     {
         $client = $this->logIn();

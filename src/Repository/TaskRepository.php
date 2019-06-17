@@ -26,4 +26,14 @@ class TaskRepository extends ServiceEntityRepository
             ;
     }
 
+    public function findNotDone()
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t')
+            ->where('t.isDone = 0')
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
 }

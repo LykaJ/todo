@@ -69,28 +69,20 @@ class TaskControllerTest extends WebTestCase
     public function testCreateActionForm()
     {
         $client = $this->logIn();
-
-        $crawler = $client->request('GET', '/tasks/create');
-
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
-        $user = $entityManager->getRepository(User::class)->findOneBy([]);
 
-        if ($client !== 'anon.') {
-            $form = $crawler->selectButton('Ajouter')->form();
-            $form['task[title]'] = 'Title new';
-            $form['task[content]'] = 'Content new';
+        $crawler = $client->request('POST', '/tasks/create');
 
-            $task = new Task();
-            $task->setUser($user);
-            $client->submit($form);
+        $form = $crawler->selectButton('Ajouter')->form();
+        $form['task[title]'] = 'Title new';
+        $form['task[content]'] = 'Content new';
+        $client->submit($form);
 
-            $client->followRedirect();
+        $this->assertContains('Redirecting to /tasks', $client->getResponse()->getContent());
 
-            $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
-            $this->assertContains("La tâche a été bien été ajoutée", $client->getResponse()->getContent());
-        }
+        $task = $entityManager->getRepository(Task::class)->findOneBy(['id' => 1]);
 
-
+        $this->assertEquals('Title new', $task->getTitle());
     }
 
     public function testEditActionOk()
@@ -100,23 +92,26 @@ class TaskControllerTest extends WebTestCase
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
         $task = $entityManager->getRepository(Task::class)->findOneBy([]);
+        $user = $entityManager->getRepository(User::class)->findOneBy([]);
 
-        $crawler = $client->request('GET', '/tasks/'.$task->getId().'/edit');
+        $crawler = $client->request('GET', '/tasks/' . $task->getId() . '/edit');
 
-        $this->assertEquals(1,	$crawler->filter('form')->count());
+        $this->assertSame($task->getUser()->getId(), $user->getId());
+        $this->assertEquals(1, $crawler->filter('form')->count());
         $this->assertTrue($client->getResponse()->isSuccessful());
         $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+
 
         $form = $crawler->selectButton('Modifier')->form();
         $form['task[title]'] = 'Title edited';
         $form['task[content]'] = 'Edited content';
-        $client->submit($form);
+        $crawler = $client->submit($form);
 
         $this->assertSame(Response::HTTP_FOUND, $client->getResponse()->getStatusCode());
 
         $client->followRedirect();
 
-        $this->assertTrue($client->getResponse()->isRedirect());
+        $this->assertTrue($crawler->filter('html:contains("La tâche a bien été modifiée")')->count() > 0);
 
     }
 
@@ -127,10 +122,15 @@ class TaskControllerTest extends WebTestCase
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
         $task = $entityManager->getRepository(Task::class)->findOneBy([]);
+        $user = $entityManager->getRepository(User::class)->findOneBy([]);
+        $role = $user->getRole();
 
         $client->request('/GET', '/tasks/' . $task->getId() . '/delete');
 
-        $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertSame('ROLE_ADMIN', $role);
+        $this->assertEquals($task->getUser()->getId(), $user->getId());
+
+        $this->assertSame(Response::HTTP_FOUND, $client->getResponse()->getStatusCode());
         $this->assertContains("La tâche a bien été supprimée", $client->getResponse()->getContent());
 
         $this->assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode());
@@ -146,9 +146,17 @@ class TaskControllerTest extends WebTestCase
 
         $task = $entityManager->getRepository(Task::class)->findOneBy([]);
 
-        $client->request('GET', '/tasks/' .$task->getId(). '/toggle');
+        $client->request('GET', '/tasks/' . $task->getId() . '/toggle');
         $client->followRedirect();
 
-        $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        //$this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+
+        $client->request('GET', '/tasks/done');
+        $this->assertContains('Redirecting to /tasks/done', $client->getResponse()->getContent());
+
+        $client->request('GET', '/tasks');
+        $this->assertEquals('Redirecting to /tasks', $client->getResponse()->getContent());
+
     }
 }

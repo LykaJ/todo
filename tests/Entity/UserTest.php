@@ -66,27 +66,14 @@ class UserTest extends TestCase
         $this->assertSame(array($this->user->getRole()), $roles);
     }
 
-    public function testAddTask()
-    {
-        $newTask = $this->user->addTask($this->task);
 
-        $this->assertInstanceOf(User::class, $newTask);
+    public function testSalt()
+    {
+        $this->assertEquals(null, $this->user->getSalt());
     }
-
-    public function testRemoveTask()
+    public function testEraseCredential()
     {
-        $task = $this->user->removeTask($this->task);
-
-        $this->assertInstanceOf(User::class, $task);
-
-        $taskUser = $this->user->setPassword(null);
-
-        $this->assertEquals($this->user->getPassword, $taskUser);
-    }
-
-    public function testEraseCredentials()
-    {
-       // This method is not used
+        static::assertSame(null, $this->user->eraseCredentials());
     }
 
 }
