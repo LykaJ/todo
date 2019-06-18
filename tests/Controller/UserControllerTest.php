@@ -75,14 +75,16 @@ class UserControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
         $form = $crawler->selectButton('Ajouter')->form();
 
-        $form['user[username]'] = 'John Jones';
+        $form['user[username]'] = 'Nia';
         $form['user[password][first]'] = 'password_test';
         $form['user[password][second]'] = 'password_test';
-        $form['user[email]'] = 'john@email.fr';
+        $form['user[email]'] = 'nia@email.fr';
         $form['user[role]'] = 'ROLE_USER';
         $client->submit($form);
 
+        $client->followRedirect();
 
+        $this->assertTrue($client->getResponse()->isRedirect('/users'));
         $this->assertContains("a bien été ajouté", $client->getResponse()->getContent());
         $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
     }
@@ -108,6 +110,7 @@ class UserControllerTest extends WebTestCase
         $client->submit($form);
 
         $client->followRedirect();
+
         $this->assertContains("a bien été modifié", $client->getResponse()->getContent());
         $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
     }
@@ -122,7 +125,6 @@ class UserControllerTest extends WebTestCase
     {
         $client = $this->logInAsUser();
         $client->request('GET', '/users');
-
 
         $this->assertContains('Access Denied', $client->getResponse()->getContent());
         $this->assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode());
