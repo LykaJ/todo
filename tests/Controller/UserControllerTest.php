@@ -26,34 +26,18 @@ class UserControllerTest extends WebTestCase
 
     }
 
-    private function logIn()
+    private function logIn(array $roles)
     {
         $client = static::createClient();
 
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
-        $user = $entityManager->getRepository(User::class)->findOneByUsername('Admin');
+        $user = $entityManager->getRepository(User::class)->findOneBy([]);
+
         $session = $client->getContainer()->get('session');
 
         $firewall = 'main';
-        $token = new UsernamePasswordToken($user, null, $firewall, array('ROLE_ADMIN'));
+        $token = new UsernamePasswordToken($user, null, $firewall, $roles);
         $session->set('_security_'.$firewall, serialize($token));
-        $session->save();
-        $cookie = new Cookie($session->getName(), $session->getId());
-        $client->getCookieJar()->set($cookie);
-        return $client;
-    }
-
-    private function logInAsUser()
-    {
-        $client = static::createClient();
-
-        $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
-        $user = $entityManager->getRepository(User::class)->findOneByUsername('JaneDoe');
-        $session = $client->getContainer()->get('session');
-
-        $firewall = 'main';
-        $token = new UsernamePasswordToken($user, null, $firewall, array('ROLE_USER'));
-        $session->set('_security_' . $firewall, serialize($token));
         $session->save();
         $cookie = new Cookie($session->getName(), $session->getId());
         $client->getCookieJar()->set($cookie);
@@ -62,7 +46,7 @@ class UserControllerTest extends WebTestCase
 
     public function testCreateUserAction()
     {
-        $client = $this->logIn();
+        $client = $this->logIn(['ROLE_ADMIN']);
 
         $crawler = $client->request('GET', '/users/create');
 
@@ -75,10 +59,10 @@ class UserControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
         $form = $crawler->selectButton('Ajouter')->form();
 
-        $form['user[username]'] = 'Nia';
+        $form['user[username]'] = 'Nythia';
         $form['user[password][first]'] = 'password_test';
         $form['user[password][second]'] = 'password_test';
-        $form['user[email]'] = 'nia@email.fr';
+        $form['user[email]'] = 'ny@email.fr';
         $form['user[role]'] = 'ROLE_USER';
         $client->submit($form);
 
@@ -91,7 +75,7 @@ class UserControllerTest extends WebTestCase
 
     public function testEditUserAction()
     {
-        $client = $this->logIn();
+        $client = $this->logIn(['ROLE_ADMIN']);
 
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
@@ -114,20 +98,20 @@ class UserControllerTest extends WebTestCase
         $this->assertContains("a bien été modifié", $client->getResponse()->getContent());
         $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
     }
-    public function testListUserAction()
+    public function testListAction()
     {
-        $client = $this->logIn();
+        $client = $this->logIn(['ROLE_ADMIN']);
         $client->request('GET', '/users');
         $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
     }
 
-    public function testListUserFailAction()
+    public function testListActionFail()
     {
-        $client = $this->logInAsUser();
+        $client = $this->logIn(['ROLE_USER']);
         $client->request('GET', '/users');
 
-        $this->assertContains('Access Denied', $client->getResponse()->getContent());
-        $this->assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode());
+        //$this->assertContains('Access Denied', $client->getResponse()->getContent());
+        $this->assertEquals(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode());
     }
 
 }
