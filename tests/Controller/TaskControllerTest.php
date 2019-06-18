@@ -71,6 +71,8 @@ class TaskControllerTest extends WebTestCase
         $client = $this->logIn();
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
+        $user = $entityManager->getRepository(User::class)->findOneBy(['id' => 1]);
+
         $crawler = $client->request('POST', '/tasks/create');
 
         $form = $crawler->selectButton('Ajouter')->form();
@@ -81,8 +83,12 @@ class TaskControllerTest extends WebTestCase
         $this->assertContains('Redirecting to /tasks', $client->getResponse()->getContent());
 
         $task = $entityManager->getRepository(Task::class)->findOneBy(['id' => 1]);
+        $task->setUser($user);
+
 
         $this->assertEquals('Title new', $task->getTitle());
+        $this->assertSame($task->getUser(), $user);
+        $this->assertEquals(Response::HTTP_FOUND, $client->getResponse()->getStatusCode());
     }
 
     public function testEditActionOk()
