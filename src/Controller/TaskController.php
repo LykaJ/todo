@@ -7,6 +7,7 @@ use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
@@ -61,7 +62,7 @@ class TaskController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
+            $task->setUser($user);
             $this->manager->persist($task);
             $this->manager->flush();
 
@@ -75,10 +76,16 @@ class TaskController extends AbstractController
     /**
      * @Route("/tasks/{id}/edit", name="task_edit")
      */
-    public function editAction(Task $task, Request $request, Security $security)
+    public function editAction(Request $request, Security $security)
     {
+        $task = $this->repository->find($request->attributes->get('id'));
         $form = $this->createForm(TaskType::class, $task)->handleRequest($request);
         $user = $security->getToken()->getUser();
+
+        if (is_null($task))
+        {
+            throw new NotFoundHttpException(sprintf('La tâche %s n\'existe pas', $request->attributes->get('id')));
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($user === $task->getUser()) {
