@@ -82,7 +82,7 @@ class TaskController extends AbstractController
         $form = $this->createForm(TaskType::class, $task)->handleRequest($request);
         $user = $security->getToken()->getUser();
 
-        if (is_null($task)) {
+        if ($task === null) {
             throw new NotFoundHttpException(sprintf('La tâche avec l\'id %s n\'existe pas', $request->attributes->get('id')));
         }
 
