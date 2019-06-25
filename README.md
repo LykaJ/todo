@@ -14,7 +14,7 @@ ToDoList
 
 # Usage
 
-To test the project, you can use the following account:
+To test the project, you can use the following account:  
 id: admin  
 pass: admin
 
