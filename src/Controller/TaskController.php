@@ -130,8 +130,9 @@ class TaskController extends AbstractController
     /**
      * @Route("/tasks/{id}/delete", name="task_delete")
      */
-    public function deleteTaskAction(Task $task, Security $security)
+    public function deleteTaskAction(Request $request, Security $security)
     {
+        $task = $this->repository->find($request->attributes->get('id'));
         $user = $security->getToken()->getUser();
 
         if ($user !== 'anon.') {
@@ -143,7 +144,8 @@ class TaskController extends AbstractController
                 $em->flush();
 
                 $this->addFlash('success', 'La tâche a bien été supprimée');
-            } elseif ($currentRole === 'ROLE_ADMIN' && $task->getUser() === null) {
+
+            } elseif ($task->getUser() === null && $currentRole === 'ROLE_ADMIN') {
 
                 $em = $this->getDoctrine()->getManager();
                 $em->remove($task);

@@ -23,13 +23,10 @@
                                 {% endif %}
                             {% endif %}
                             <div class="float-right">
-                                {% if app.user == task.user or is_granted('ROLE_ADMIN') %}
-                                    {% if app.user %}
-                                        <form action="{{ path('task_delete', {'id' : task.id }) }}">
-                                            <button class="btn btn-outline-secondary"><i class="far fa-trash-alt"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
+                                {% if app.user == task.user %}
+                                        {% include('task/_delete.html.twig') %}
+                                    {% elseif task.user == null and is_granted('ROLE_ADMIN') %}
+                                        {% include('task/_delete.html.twig') %}
                                 {% endif %}
                             </div>
                         </h4>
