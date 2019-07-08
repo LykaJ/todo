@@ -12,7 +12,6 @@ namespace App\Voter;
 use App\Entity\Task;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class TaskVoter extends Voter
@@ -20,12 +19,6 @@ class TaskVoter extends Voter
     // these strings are just invented: you can use anything
     const DELETE = 'delete';
 
-    private $security;
-
-    public function __construct(Security $security)
-    {
-        $this->security = $security;
-    }
 
     protected function supports($attribute, $subject)
     {
@@ -50,7 +43,7 @@ class TaskVoter extends Voter
                     return true;
                 }
 
-                if ($this->security->isGranted('ROLE_ADMIN') && $task->getUser() === null)
+                if ($user->getRole() === 'ROLE_ADMIN' && $task->getUser() === null)
                 {
                     return true;
                 }
