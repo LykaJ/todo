@@ -114,8 +114,7 @@ class TaskController extends AbstractController
         $task->toggle(!$task->isDone());
         $this->manager->flush();
 
-        if ($task->isDone())
-        {
+        if ($task->isDone()) {
             $this->addFlash('success', sprintf('La tâche %s a bien été marquée comme faite', $task->getTitle()));
 
             return $this->redirectToRoute('task_done_list');
@@ -130,34 +129,15 @@ class TaskController extends AbstractController
     /**
      * @Route("/tasks/{id}/delete", name="task_delete")
      */
-    public function deleteTaskAction(Request $request, Security $security)
+    public function deleteTaskAction(Request $request)
     {
         $task = $this->repository->find($request->attributes->get('id'));
-        $user = $security->getToken()->getUser();
+        $this->denyAccessUnlessGranted('DELETE', $task);
 
-        if ($user !== 'anon.') {
-            $currentRole = $user->getRole();
+        $this->manager->remove($task);
+        $this->manager->flush();
 
-            if ($user === $task->getUser()) {
-                $em = $this->getDoctrine()->getManager();
-                $em->remove($task);
-                $em->flush();
-
-                $this->addFlash('success', 'La tâche a bien été supprimée');
-
-            } elseif ($task->getUser() === null && $currentRole === 'ROLE_ADMIN') {
-
-                $em = $this->getDoctrine()->getManager();
-                $em->remove($task);
-                $em->flush();
-
-                $this->addFlash('success', 'La tâche a bien été supprimée.');
-            } else {
-                $this->addFlash('error', 'Vous n\'êtes pas l\'auteur(e) de cette tâche');
-            }
-        } else {
-            $this->addFlash('error', 'Vous n\'avez pas les droits pour supprimer cette tâche');
-        }
+        $this->addFlash('success', 'La tâche a bien été supprimée');
 
         return $this->redirectToRoute('task_list');
     }
