@@ -1,4 +1,6 @@
-<a href="{{ path('task_delete', {'id' : task.id }) }}">
-    <button class="btn btn-outline-secondary"><i class="far fa-trash-alt"></i>
-    </button>
-</a>
+{% if app.user %}
+    <a href="{{ path('task_delete', {'id' : task.id }) }}">
+        <button class="btn btn-outline-secondary"><i class="far fa-trash-alt"></i>
+        </button>
+    </a>
+{% endif %}
