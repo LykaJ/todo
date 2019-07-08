@@ -24,11 +24,9 @@
                             {% endif %}
                             <div class="float-right">
                                 {% if app.user == task.user %}
-                                    {% if app.user %}
-                                        {% include('task/_delete.html.twig') %}
-                                    {% elseif is_granted('ROLE_ADMIN') and task.user == null %}
-                                        {% include('task/_delete.html.twig') %}
-                                    {% endif %}
+                                    {% include('task/_delete.html.twig') %}
+                                {% elseif is_granted('ROLE_ADMIN') and task.user == null %}
+                                    {% include('task/_delete.html.twig') %}
                                 {% endif %}
                             </div>
                         </h4>
