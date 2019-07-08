@@ -59,10 +59,10 @@ class UserControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
         $form = $crawler->selectButton('Ajouter')->form();
 
-        $form['user[username]'] = 'Log';
+        $form['user[username]'] = 'Yan';
         $form['user[password][first]'] = 'password_test';
         $form['user[password][second]'] = 'password_test';
-        $form['user[email]'] = 'log@email.fr';
+        $form['user[email]'] = 'yan@email.fr';
         $form['user[role]'] = 'ROLE_USER';
         $client->submit($form);
 

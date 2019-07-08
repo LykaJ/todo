@@ -34,10 +34,8 @@ class UserController extends AbstractController
             return $this->render('user/list.html.twig', [
                 'users' => $users
             ]);
-        } else {
-            $this->addFlash('error', 'Vous n\'avez pas les droits d\'accès à ces données');
-            return $this->redirectToRoute('homepage');
         }
+        return $this->redirectToRoute('homepage');
     }
 
     /**
