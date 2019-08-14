@@ -59,10 +59,10 @@ class UserControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
         $form = $crawler->selectButton('Ajouter')->form();
 
-        $form['user[username]'] = 'Yan';
+        $form['user[username]'] = 'Riiki';
         $form['user[password][first]'] = 'password_test';
         $form['user[password][second]'] = 'password_test';
-        $form['user[email]'] = 'yan@email.fr';
+        $form['user[email]'] = 'riki@email.fr';
         $form['user[role]'] = 'ROLE_USER';
         $client->submit($form);
 
@@ -102,6 +102,7 @@ class UserControllerTest extends WebTestCase
     {
         $client = $this->logIn(['ROLE_ADMIN']);
         $client->request('GET', '/users');
+
         $this->assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
     }
 

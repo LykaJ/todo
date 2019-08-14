@@ -31,11 +31,11 @@ class UserController extends AbstractController
         if ($currentRole === 'ROLE_ADMIN')
         {
             $users = $this->repository->findAll();
-            return $this->render('user/list.html.twig', [
-                'users' => $users
-            ]);
         }
-        return $this->redirectToRoute('homepage');
+
+        return $this->render('user/list.html.twig', [
+            'users' => $users
+        ]);
     }
 
     /**
