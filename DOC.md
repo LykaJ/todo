@@ -1,4 +1,4 @@
-#Comment contribuer au projet
+# Comment contribuer au projet
 
 Tu viens d’arriver dans l’équipe (yeah !) mais tu ne connais pas encore nos méthodes de travail et de développement. 
 
